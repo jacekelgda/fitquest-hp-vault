@@ -23,8 +23,16 @@ provider:
     VERIFICATION_TOKEN: ${file(./serverless.env.yml):dev.SLACK_VERIFICATION_TOKEN}
     ENABLE_LOGGING: ${file(./serverless.env.yml):dev.SLACK_ENABLE_LOGGING}
     SLACK_ADMINS: ${file(./serverless.env.yml):dev.SLACK_ADMINS}
+    HP_TABLE_NAME: ${file(./serverless.env.yml):dev.HP_TABLE_NAME}
 
 functions:
+  create:
+    handler: src/controllers/createHealthProfile.create
+    events:
+      - http:
+          path: healthpoints
+          method: post
+          cors: true
   slack:
     handler: build/index.handler
     events:
@@ -55,7 +63,6 @@ functions:
                 headers:
                   Location: integration.response.body.errorMessage
                   Cache-Control: "'no-cache, no-store, must-revalidate'"
-
 
 resources:
   Resources:
