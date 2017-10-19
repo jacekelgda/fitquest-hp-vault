@@ -33,6 +33,15 @@ functions:
           path: healthpoints
           method: post
           cors: true
+
+  update:
+    handler: src/controllers/updateHealthProfile.update
+    events:
+      - http:
+          path: healthpoints/{id}
+          method: put
+          cors: true
+
   slack:
     handler: build/index.handler
     events:

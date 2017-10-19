@@ -5,43 +5,45 @@ const AWS = require('aws-sdk');
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
-module.exports.create = (event, context, callback) => {
+module.exports.update = (event, context, callback) => {
   const timestamp = new Date().getTime();
   const data = JSON.parse(event.body);
-  if (typeof data.slackid !== 'string') {
+  if (typeof data.hp !== 'number') {
     callback(null, {
       statusCode: 400,
       headers: { 'Content-Type': 'text/plain' },
-      body: 'Couldn\'t create hp profile.',
+      body: 'Couldn\'t update hp profile.',
     });
     return;
   }
+
   const params = {
     TableName: process.env.HP_TABLE_NAME,
-    Item: {
-      id: uuid.v1(),
-      slackid: data.slackid,
-      hp: 5,
-      createdAt: timestamp,
-      updatedAt: timestamp,
+    Key: {
+      id: event.pathParameters.id,
     },
+    ExpressionAttributeValues: {
+      ':hp': data.hp,
+      ':updatedAt': timestamp,
+    },
+    UpdateExpression: 'SET hp = :hp, updatedAt = :updatedAt',
+    ReturnValues: 'ALL_NEW',
   };
 
-  dynamoDb.put(params, error => {
+  dynamoDb.update(params, (error, result) => {
     if (error) {
       callback(null, {
         statusCode: error.statusCode || 501,
         headers: { 'Content-Type': 'text/plain' },
-        body: 'Couldn\'t create the HP profile item.',
+        body: 'Couldn\'t fetch the hp profile.',
       });
       return;
     }
 
     const response = {
-      statusCode: 201,
-      body: JSON.stringify(params.Item),
+      statusCode: 200,
+      body: JSON.stringify(result.Attributes),
     };
-
     callback(null, response);
   });
 };
