@@ -1,6 +1,5 @@
 'use strict';
 
-const uuid = require('uuid');
 const AWS = require('aws-sdk');
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
@@ -8,6 +7,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 module.exports.update = (event, context, callback) => {
   const timestamp = new Date().getTime();
   const data = JSON.parse(event.body);
+
   if (typeof data.hp !== 'number') {
     callback(null, {
       statusCode: 400,
@@ -44,6 +44,7 @@ module.exports.update = (event, context, callback) => {
       statusCode: 200,
       body: JSON.stringify(result.Attributes),
     };
+
     callback(null, response);
   });
 };
