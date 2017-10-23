@@ -34,6 +34,22 @@ functions:
           method: put
           cors: true
 
+  get:
+    handler: src/controllers/getHealthProfile.get
+    events:
+      - http:
+          path: healthpoints/{id}
+          method: get
+          cors: true
+
+  list:
+    handler: src/controllers/listHealthProfile.list
+    events:
+      - http:
+          path: healthpoints
+          method: get
+          cors: true
+
 resources:
   Resources:
     HPTable:
