@@ -60,6 +60,13 @@ functions:
           path: challenge
           method: post
           cors: true
+  heal:
+    handler: src/controllers/completeChallenge.heal
+    events:
+      - http:
+          path: heal
+          method: post
+          cors: true
 
 resources:
   Resources:

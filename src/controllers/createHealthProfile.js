@@ -1,6 +1,5 @@
 'use strict';
 
-const uuid = require('uuid');
 const AWS = require('aws-sdk');
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
@@ -20,9 +19,9 @@ module.exports.create = (event, context, callback) => {
   const params = {
     TableName: process.env.HP_TABLE_NAME,
     Item: {
-      id: uuid.v1(),
+      id: data.slackid,
       slackid: data.slackid,
-      hp: 5,
+      hp: 3,
       createdAt: timestamp,
       updatedAt: timestamp,
     },
