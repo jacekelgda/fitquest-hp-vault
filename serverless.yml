@@ -16,6 +16,9 @@ provider:
       Resource: "arn:aws:dynamodb:us-east-1:*:*"
   environment:
     HP_TABLE_NAME: ${file(./serverless.env.yml):dev.HP_TABLE_NAME}
+    MAIN_SLACK_CHANNEL: ${file(./serverless.env.yml):dev.MAIN_SLACK_CHANNEL}
+    SLACK_API_TOKEN: ${file(./serverless.env.yml):dev.SLACK_API_TOKEN}
+    GAME_MASTER_ID: ${file(./serverless.env.yml):dev.GAME_MASTER_ID}
 
 functions:
   create:
@@ -48,6 +51,14 @@ functions:
       - http:
           path: healthpoints
           method: get
+          cors: true
+
+  complete:
+    handler: src/controllers/completeChallenge.complete
+    events:
+      - http:
+          path: challenge
+          method: post
           cors: true
 
 resources:
