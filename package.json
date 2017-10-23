@@ -10,7 +10,6 @@
     "eslint": "./node_modules/.bin/eslint src/**/*.js --fix",
     "build": "rm -fr build && babel ./src -d build",
     "deploy": "npm run build && serverless deploy",
-    "codedeploy": "npm run build && serverless deploy function -f slack",
     "test": "jest"
   },
   "dependencies": {
@@ -19,7 +18,6 @@
     "babel-preset-latest": "^6.24.1",
     "eslint": "^4.9.0",
     "regenerator-runtime": "^0.11.0",
-    "serverless-slack": "^1.0.26",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
