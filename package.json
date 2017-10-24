@@ -10,17 +10,18 @@
     "eslint": "./node_modules/.bin/eslint src/**/*.js --fix",
     "build": "rm -fr build && babel ./src -d build",
     "deploy": "npm run build && serverless deploy",
-    "test": "jest"
+    "test": "jest",
+    "deploy-complete": "npm run build && sls deploy function -f complete"
   },
   "dependencies": {
-    "babel-cli": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-latest": "^6.24.1",
     "slack-node": "^0.1.8",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
     "aws-sdk": "^2.135.0",
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2017": "^6.24.1",
     "eslint": "^4.9.0",
     "jest": "^21.2.1",
     "regenerator-runtime": "^0.11.0"

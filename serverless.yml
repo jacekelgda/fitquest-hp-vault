@@ -22,7 +22,7 @@ provider:
 
 functions:
   create:
-    handler: src/controllers/createHealthProfile.create
+    handler: build/controllers/createHealthProfile.create
     events:
       - http:
           path: healthpoints
@@ -30,7 +30,7 @@ functions:
           cors: true
 
   update:
-    handler: src/controllers/updateHealthProfile.update
+    handler: build/controllers/updateHealthProfile.update
     events:
       - http:
           path: healthpoints/{id}
@@ -38,7 +38,7 @@ functions:
           cors: true
 
   get:
-    handler: src/controllers/getHealthProfile.get
+    handler: build/controllers/getHealthProfile.get
     events:
       - http:
           path: healthpoints/{id}
@@ -46,7 +46,7 @@ functions:
           cors: true
 
   list:
-    handler: src/controllers/listHealthProfile.list
+    handler: build/controllers/listHealthProfile.list
     events:
       - http:
           path: healthpoints
@@ -54,14 +54,14 @@ functions:
           cors: true
 
   complete:
-    handler: src/controllers/completeChallenge.complete
+    handler: build/controllers/completeChallenge.complete
     events:
       - http:
           path: challenge
           method: post
           cors: true
   heal:
-    handler: src/controllers/completeChallenge.heal
+    handler: build/controllers/completeChallenge.heal
     events:
       - http:
           path: heal
