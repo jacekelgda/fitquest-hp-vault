@@ -8,6 +8,27 @@ module.exports.complete = (event, context, callback) => {
   const data = JSON.parse(event.body);
   const slack = new Slack(process.env.SLACK_API_TOKEN);
   const ts = data.ts;
+
+  if (!data.userId) {
+    callback(null, {
+      statusCode: 400,
+      headers: { 'Content-Type': 'text/plain' },
+      body: 'We shal not pass this request. We need to know userId of posted message.',
+    });
+    return;
+  }
+
+  // check if passed userId is in fact of participant
+
+  if (!data.ts) {
+    callback(null, {
+      statusCode: 400,
+      headers: { 'Content-Type': 'text/plain' },
+      body: 'We shal not pass this request. We need to know ts of posted message.',
+    });
+    return;
+  }
+
   const messageLink = `User has submitted challenge as done: https://x-team.slack.com/archives/${process.env.MAIN_SLACK_CHANNEL}/p${ts}`;
 
   const attachments = [
