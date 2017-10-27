@@ -8,7 +8,7 @@ module.exports.create = (event, context, callback) => {
   const timestamp = new Date().getTime();
   const data = JSON.parse(event.body);
 
-  if (typeof data.slackid !== 'string' || typeof data.username !== 'string') {
+  if (typeof data.slackid !== 'string' || typeof data.slackusername !== 'string') {
     callback(null, {
       statusCode: 400,
       headers: { 'Content-Type': 'text/plain' },
