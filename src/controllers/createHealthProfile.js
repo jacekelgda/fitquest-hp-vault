@@ -8,7 +8,7 @@ module.exports.create = (event, context, callback) => {
   const timestamp = new Date().getTime();
   const data = JSON.parse(event.body);
 
-  if (typeof data.slackid !== 'string') {
+  if (typeof data.slackid !== 'string' || typeof data.username !== 'string') {
     callback(null, {
       statusCode: 400,
       headers: { 'Content-Type': 'text/plain' },
@@ -21,6 +21,7 @@ module.exports.create = (event, context, callback) => {
     Item: {
       id: data.slackid,
       slackid: data.slackid,
+      userName: data.slackusername,
       hp: 3,
       createdAt: timestamp,
       updatedAt: timestamp,
