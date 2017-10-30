@@ -223,6 +223,7 @@
     "wrap-iife": "error",
     "wrap-regex": "error",
     "yield-star-spacing": "error",
-    "yoda": ["error", "never"]
+    "yoda": ["error", "never"],
+    "no-console": "off"
   }
 }

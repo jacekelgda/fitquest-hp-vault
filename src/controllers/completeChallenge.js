@@ -4,6 +4,32 @@ const Slack = require('slack-node');
 const AWS = require('aws-sdk');
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
+const fetchChannelUsers = () => {
+  const slack = new Slack(process.env.SLACK_API_TOKEN);
+
+  return new Promise((resolve, reject) => {
+    const data = {
+      channel: process.env.MAIN_SLACK_CHANNEL
+    };
+
+    slack.api('channels.info', data, (err, response) => {
+      if (err) {
+        reject(err);
+      } else if (response.ok === false) {
+          reject(response.error);
+      } else if (response.ok === true) {
+          resolve(response.channel.members);
+      }
+    })
+  })
+}
+
+const checkIfParticipant = async userId => {
+  const channelUsers = await fetchChannelUsers();
+
+  return channelUsers.includes(userId);
+}
+
 module.exports.complete = async (event, context, callback) => {
   const data = JSON.parse(event.body);
   const slack = new Slack(process.env.SLACK_API_TOKEN);
@@ -19,6 +45,7 @@ module.exports.complete = async (event, context, callback) => {
   }
 
   const isParticipant = await checkIfParticipant(data.userId);
+
   if (!isParticipant) {
     callback(null, {
       statusCode: 404,
@@ -38,6 +65,7 @@ module.exports.complete = async (event, context, callback) => {
   }
 
   const reg = /^.{10}\..{6}$/g;
+
   if (reg.test(data.ts)) {
     callback(null, {
       statusCode: 400,
@@ -51,30 +79,30 @@ module.exports.complete = async (event, context, callback) => {
 
   const attachments = [
       {
-          "text": "Do you approve this request?",
-          "fallback": "choose your action",
-          "callback_id": data.userId,
-          "color": "#3AA3E3",
-          "attachment_type": "default",
-          "actions": [
+          'text': 'Do you approve this request?',
+          'fallback': 'choose your action',
+          'callback_id': data.userId,
+          'color': '#3AA3E3',
+          'attachment_type': 'default',
+          'actions': [
               {
-                  "name": "game",
-                  "text": "Approve",
-                  "type": "button",
-                  "style": "primary",
-                  "value": "1"
+                  'name': 'game',
+                  'text': 'Approve',
+                  'type': 'button',
+                  'style': 'primary',
+                  'value': '1'
               },
               {
-                  "name": "game",
-                  "text": "Decline",
-                  "style": "danger",
-                  "type": "button",
-                  "value": "0",
-                  "confirm": {
-                      "title": "Are you sure?",
-                      "text": "It will result with damage in the end of the week.",
-                      "ok_text": "Yes",
-                      "dismiss_text": "No"
+                  'name': 'game',
+                  'text': 'Decline',
+                  'style': 'danger',
+                  'type': 'button',
+                  'value': '0',
+                  'confirm': {
+                      'title': 'Are you sure?',
+                      'text': 'It will result with damage in the end of the week.',
+                      'ok_text': 'Yes',
+                      'dismiss_text': 'No'
                   }
               }
           ]
@@ -86,7 +114,10 @@ module.exports.complete = async (event, context, callback) => {
     channel: process.env.MAIN_SLACK_CHANNEL,
     user: process.env.GAME_MASTER_ID,
     attachments: JSON.stringify(attachments)
-  }, function(err, response){
+  }, (err, response) => {
+    if (err) {
+      console.log(err);
+    }
     console.log(response);
   });
 
@@ -100,6 +131,7 @@ module.exports.complete = async (event, context, callback) => {
 
 module.exports.heal = (event, context, callback) => {
   const data = JSON.parse(decodeURIComponent(event.body.replace(/^payload=/, '')));
+
   if (data.actions[0].value === '0') {
     const response = {
       statusCode: 200,
@@ -123,7 +155,7 @@ module.exports.heal = (event, context, callback) => {
     ReturnValues: 'ALL_NEW',
   };
 
-  dynamoDb.update(params, (error, result) => {
+  dynamoDb.update(params, error => {
     if (error) {
       callback(null, {
         statusCode: error.statusCode || 501,
@@ -140,25 +172,4 @@ module.exports.heal = (event, context, callback) => {
 
     callback(null, response);
   });
-}
-
-const fetchChannelUsers = () => {
-  const slack = new Slack(process.env.SLACK_API_TOKEN);
-  return new Promise((resolve, reject) => {
-    const data = {
-      channel: process.env.MAIN_SLACK_CHANNEL
-    };
-    slack.api('channels.info', data, (err, response) => {
-      if (response.ok === false) {
-          reject(response.error);
-      } else if (response.ok === true) {
-          resolve(response.channel.members);
-      }
-    })
-  })
-}
-
-const checkIfParticipant = async (userId) => {
-  const channelUsers = await fetchChannelUsers();
-  return channelUsers.includes(userId);
 }
