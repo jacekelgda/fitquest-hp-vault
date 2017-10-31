@@ -76,6 +76,14 @@ functions:
           method: post
           cors: true
 
+  healcmd:
+    handler: build/controllers/updateHealthProfile.healcmd
+    events:
+      - http:
+          path: healcmd
+          method: post
+          cors: true
+
 resources:
   Resources:
     HPTable:
