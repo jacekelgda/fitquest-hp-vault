@@ -4,6 +4,17 @@ const Slack = require('slack-node');
 const AWS = require('aws-sdk');
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
+const getUserInfo = (id) => {
+  const slack = new Slack(process.env.SLACK_API_TOKEN);
+  return new Promise((resolve, reject) => {
+    slack.api('users.info', {
+      user: id,
+    }, function(err, response){
+      resolve(response);
+    });
+  });
+}
+
 module.exports.complete = async (event, context, callback) => {
   const data = JSON.parse(event.body);
   const slack = new Slack(process.env.SLACK_API_TOKEN);
@@ -47,8 +58,8 @@ module.exports.complete = async (event, context, callback) => {
     return;
   }
 
-  const messageLink = `User has submitted challenge as done: https://x-team.slack.com/archives/${process.env.MAIN_SLACK_CHANNEL}/p${ts}`;
-
+  const userInfo = await getUserInfo(data.userId);
+  const messageLink = `${userInfo.user.name} has submitted challenge as done: https://x-team.slack.com/archives/${process.env.MAIN_SLACK_CHANNEL}/p${ts}`;
   const attachments = [
       {
           "text": "Do you approve this request?",
