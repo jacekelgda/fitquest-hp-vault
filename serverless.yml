@@ -21,6 +21,14 @@ provider:
     GAME_MASTER_ID: ${file(./serverless.env.yml):dev.GAME_MASTER_ID}
 
 functions:
+  init:
+    handler: build/controllers/createHealthProfile.init
+    events:
+      - http:
+          path: init
+          method: post
+          cors: true
+
   create:
     handler: build/controllers/createHealthProfile.create
     events:
