@@ -11,7 +11,9 @@
     "build": "rm -fr build && babel ./src -d build",
     "deploy": "npm run build && serverless deploy",
     "test": "jest",
-    "deploy-complete": "npm run build && sls deploy function -f complete"
+    "deploy-complete": "npm run build && sls deploy function -f complete",
+    "deploy-init": "npm run build && sls deploy function -f init",
+    "logs-init": "serverless logs -f init -t"
   },
   "dependencies": {
     "babel-plugin-transform-runtime": "^6.23.0",
