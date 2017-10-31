@@ -84,6 +84,14 @@ functions:
           method: post
           cors: true
 
+  hitcmd:
+    handler: build/controllers/updateHealthProfile.hitcmd
+    events:
+      - http:
+          path: hitcmd
+          method: post
+          cors: true
+
 resources:
   Resources:
     HPTable:
