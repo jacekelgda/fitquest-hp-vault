@@ -60,17 +60,20 @@ module.exports.healcmd = (event, context, callback) => {
     ExpressionAttributeValues: {
       ':value': 1,
       ':updatedAt': timestamp,
+      ':maxhp': 5
     },
     UpdateExpression: 'SET hp = hp + :value, updatedAt = :updatedAt',
+    ConditionExpression: 'hp < :maxhp',
     ReturnValues: 'ALL_NEW',
   };
 
   dynamoDb.update(params, (error, result) => {
     if (error) {
+      console.log('HEALCMD', error);
       callback(null, {
         statusCode: error.statusCode || 501,
         headers: { 'Content-Type': 'text/plain' },
-        body: 'Couldn\'t update the hp profile.',
+        body: error.code || 'Couldn\'t update the hp profile.',
       });
       return;
     }
@@ -79,6 +82,7 @@ module.exports.healcmd = (event, context, callback) => {
       statusCode: 200,
       body: JSON.stringify(result),
     };
+    console.log('HEALCMD OK: ', result);
 
     callback(null, response);
   });
@@ -95,17 +99,20 @@ module.exports.hitcmd = (event, context, callback) => {
     ExpressionAttributeValues: {
       ':value': 1,
       ':updatedAt': timestamp,
+      ':minhp': 0
     },
     UpdateExpression: 'SET hp = hp - :value, updatedAt = :updatedAt',
+    ConditionExpression: 'hp > :minhp',
     ReturnValues: 'ALL_NEW',
   };
 
   dynamoDb.update(params, (error, result) => {
     if (error) {
+      console.log('HITCMD', error);
       callback(null, {
         statusCode: error.statusCode || 501,
         headers: { 'Content-Type': 'text/plain' },
-        body: 'Couldn\'t update the hp profile.',
+        body: error.code || 'Couldn\'t update the hp profile.',
       });
       return;
     }
@@ -114,6 +121,7 @@ module.exports.hitcmd = (event, context, callback) => {
       statusCode: 200,
       body: JSON.stringify(result),
     };
+    console.log('HITCMD OK: ', result);
 
     callback(null, response);
   });

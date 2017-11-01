@@ -19,6 +19,7 @@ provider:
     MAIN_SLACK_CHANNEL: ${file(./serverless.env.yml):dev.MAIN_SLACK_CHANNEL}
     SLACK_API_TOKEN: ${file(./serverless.env.yml):dev.SLACK_API_TOKEN}
     GAME_MASTER_ID: ${file(./serverless.env.yml):dev.GAME_MASTER_ID}
+    ADMIN_ID: ${file(./serverless.env.yml):dev.GAME_MASTER_ID}
 
 functions:
   init:
