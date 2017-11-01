@@ -15,6 +15,18 @@ const getUserInfo = (id) => {
   });
 }
 
+const notifyUser = (id, messageLink, attachments) => {
+  const slack = new Slack(process.env.SLACK_API_TOKEN);
+  slack.api('chat.postEphemeral', {
+    text: messageLink,
+    channel: process.env.MAIN_SLACK_CHANNEL,
+    user: id,
+    attachments
+  }, function(err, response){
+    console.log(err, response);
+  });
+}
+
 module.exports.complete = async (event, context, callback) => {
   const data = JSON.parse(event.body);
   const slack = new Slack(process.env.SLACK_API_TOKEN);
@@ -91,24 +103,8 @@ module.exports.complete = async (event, context, callback) => {
           ]
       }
   ];
-
-  slack.api('chat.postEphemeral', {
-    text: messageLink,
-    channel: process.env.MAIN_SLACK_CHANNEL,
-    user: process.env.GAME_MASTER_ID,
-    attachments: JSON.stringify(attachments)
-  }, function(err, response){
-    console.log(response);
-  });
-
-  slack.api('chat.postEphemeral', {
-    text: messageLink,
-    channel: process.env.MAIN_SLACK_CHANNEL,
-    user: process.env.ADMIN_ID,
-  }, function(err, response){
-    console.log(response);
-  });
-
+  console.log(messageLink);
+  await notifyUser(process.env.GAME_MASTER_ID, messageLink, JSON.stringify(attachments));
   const response = {
     statusCode: 201,
     body: 'Congrats. Your request is valid. It will be decided if The Guardians will approve it.',
@@ -160,12 +156,6 @@ module.exports.heal = async (event, context, callback) => {
       });
       return;
     }
-    slack.api('chat.postEphemeral', {
-      text: `${userInfo.user.name} got +1HP by The Device submit.`,
-      channel: process.env.MAIN_SLACK_CHANNEL,
-      user: process.env.ADMIN_ID,
-    });
-
     const response = {
       statusCode: 200,
       body: JSON.stringify(`Done! ${result.Attributes.userName} has now ${result.Attributes.hp}HP.`),
