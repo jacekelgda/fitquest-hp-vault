@@ -101,6 +101,14 @@ module.exports.complete = async (event, context, callback) => {
     console.log(response);
   });
 
+  slack.api('chat.postEphemeral', {
+    text: messageLink,
+    channel: process.env.MAIN_SLACK_CHANNEL,
+    user: process.env.ADMIN_ID,
+  }, function(err, response){
+    console.log(response);
+  });
+
   const response = {
     statusCode: 201,
     body: 'Congrats. Your request is valid. It will be decided if The Guardians will approve it.',
@@ -109,7 +117,7 @@ module.exports.complete = async (event, context, callback) => {
   callback(null, response);
 }
 
-module.exports.heal = (event, context, callback) => {
+module.exports.heal = async (event, context, callback) => {
   const data = JSON.parse(decodeURIComponent(event.body.replace(/^payload=/, '')));
   if (data.actions[0].value === '0') {
     const response = {
@@ -129,25 +137,40 @@ module.exports.heal = (event, context, callback) => {
     ExpressionAttributeValues: {
       ':value': 1,
       ':updatedAt': timestamp,
+      ':maxhp': 5
     },
     UpdateExpression: 'SET hp = hp + :value, updatedAt = :updatedAt',
+    ConditionExpression: 'hp < :maxhp',
     ReturnValues: 'ALL_NEW',
   };
 
+  const slack = new Slack(process.env.SLACK_API_TOKEN);
+  const userInfo = await getUserInfo(data.callback_id);
   dynamoDb.update(params, (error, result) => {
     if (error) {
+      console.log('HEAL', error);
+      let errorBody = `Error updating HP.`
+      if (error.code === 'ConditionalCheckFailedException') {
+        errorBody = `${userInfo.user.name} has reached 5HP limit. Request declined.`
+      }
       callback(null, {
-        statusCode: error.statusCode || 501,
+        statusCode: 200,
         headers: { 'Content-Type': 'text/plain' },
-        body: 'Couldn\'t update the hp profile.',
+        body: errorBody,
       });
       return;
     }
+    slack.api('chat.postEphemeral', {
+      text: `${userInfo.user.name} got +1HP by The Device submit.`,
+      channel: process.env.MAIN_SLACK_CHANNEL,
+      user: process.env.ADMIN_ID,
+    });
 
     const response = {
       statusCode: 200,
-      body: JSON.stringify('HP increased by +1HP'),
+      body: JSON.stringify(`Done! ${result.Attributes.userName} has now ${result.Attributes.hp}HP.`),
     };
+    console.log('HEAL OK: ', result);
 
     callback(null, response);
   });
