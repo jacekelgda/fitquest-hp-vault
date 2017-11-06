@@ -105,6 +105,7 @@ module.exports.complete = async (event, context, callback) => {
   ];
   console.log(messageLink);
   await notifyUser(process.env.GAME_MASTER_ID, messageLink, JSON.stringify(attachments));
+  await notifyUser(process.env.ADMIN_ID, messageLink);
   const response = {
     statusCode: 201,
     body: 'Congrats. Your request is valid. It will be decided if The Guardians will approve it.',
@@ -161,9 +162,10 @@ module.exports.heal = async (event, context, callback) => {
       body: JSON.stringify(`Done! ${result.Attributes.userName} has now ${result.Attributes.hp}HP.`),
     };
     console.log('HEAL OK: ', result);
-
     callback(null, response);
   });
+
+  await notifyUser(process.env.ADMIN_ID, `The Device healing ${userInfo.user.name}`);
 }
 
 const fetchChannelUsers = () => {

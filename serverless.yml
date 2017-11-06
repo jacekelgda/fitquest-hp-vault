@@ -19,7 +19,9 @@ provider:
     MAIN_SLACK_CHANNEL: ${file(./serverless.env.yml):dev.MAIN_SLACK_CHANNEL}
     SLACK_API_TOKEN: ${file(./serverless.env.yml):dev.SLACK_API_TOKEN}
     GAME_MASTER_ID: ${file(./serverless.env.yml):dev.GAME_MASTER_ID}
-    ADMIN_ID: ${file(./serverless.env.yml):dev.GAME_MASTER_ID}
+    ADMIN_ID: ${file(./serverless.env.yml):dev.ADMIN_ID}
+    VERIFICATION_TOKEN: ${file(./serverless.env.yml):dev.VERIFICATION_TOKEN}
+    SLACK_BOT_TOKEN: ${file(./serverless.env.yml):dev.SLACK_BOT_TOKEN}
 
 functions:
   init:
@@ -90,6 +92,14 @@ functions:
     events:
       - http:
           path: hitcmd
+          method: post
+          cors: true
+
+  theplanetcmd:
+    handler: build/controllers/updateHealthProfile.theplanetcmd
+    events:
+      - http:
+          path: theplanetcmd
           method: post
           cors: true
 
