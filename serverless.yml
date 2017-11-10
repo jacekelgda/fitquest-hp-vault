@@ -17,6 +17,7 @@ provider:
   environment:
     HP_TABLE_NAME: ${file(./serverless.env.yml):dev.HP_TABLE_NAME}
     MAIN_SLACK_CHANNEL: ${file(./serverless.env.yml):dev.MAIN_SLACK_CHANNEL}
+    LOGS_SLACK_GROUP: ${file(./serverless.env.yml):dev.LOGS_SLACK_GROUP}
     SLACK_API_TOKEN: ${file(./serverless.env.yml):dev.SLACK_API_TOKEN}
     GAME_MASTER_ID: ${file(./serverless.env.yml):dev.GAME_MASTER_ID}
     ADMIN_ID: ${file(./serverless.env.yml):dev.ADMIN_ID}

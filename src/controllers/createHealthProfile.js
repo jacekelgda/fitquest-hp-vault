@@ -50,6 +50,7 @@ module.exports.create = (event, context, callback) => {
 module.exports.init = (event, context, callback) => {
   const timestamp = new Date().getTime();
   const data = JSON.parse(event.body);
+
   console.log(data.length);
   for (let i = 0; i < data.length; i += 1) {
     const params = {
@@ -78,6 +79,7 @@ module.exports.init = (event, context, callback) => {
         statusCode: 201,
         body: JSON.stringify(params.Item),
       };
+
       console.log(response);
 
       callback(null, response);

@@ -6,11 +6,11 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
 const notifyUser = (id, messageLink, attachments) => {
   const slack = new Slack(process.env.SLACK_API_TOKEN);
+
   return new Promise((resolve, reject) => {
-    slack.api('chat.postEphemeral', {
+    slack.api('chat.postMessage', {
       text: messageLink,
-      channel: process.env.MAIN_SLACK_CHANNEL,
-      user: id,
+      channel: `@${id}`,
       attachments
     }, (err, response) => {
       if (err) {
@@ -26,11 +26,11 @@ const notifyUser = (id, messageLink, attachments) => {
 
 const sendAsThePlanet = (id, text, attachments) => {
   const slack = new Slack(process.env.SLACK_BOT_TOKEN);
+
   return new Promise((resolve, reject) => {
-    slack.api('chat.postEphemeral', {
+    slack.api('chat.postMessage', {
       text,
-      channel: process.env.MAIN_SLACK_CHANNEL,
-      user: id,
+      channel: `@${id}`,
       attachments,
       as_user: true
     }, (err, response) => {
@@ -123,6 +123,7 @@ module.exports.healcmd = (event, context, callback) => {
       statusCode: 200,
       body: JSON.stringify(result),
     };
+
     console.log('HEALCMD OK: ', result);
 
     callback(null, response);
@@ -162,6 +163,7 @@ module.exports.hitcmd = (event, context, callback) => {
       statusCode: 200,
       body: JSON.stringify(result),
     };
+
     console.log('HITCMD OK: ', result);
 
     callback(null, response);
@@ -172,6 +174,7 @@ const getAllItems = () => {
   const scanParams = {
     TableName: process.env.HP_TABLE_NAME,
   };
+
   return new Promise((resolve, reject) => {
     dynamoDb.scan(scanParams, (error, result) => {
       if (error) {
@@ -185,7 +188,8 @@ const getAllItems = () => {
 module.exports.theplanetcmd = async (event, context, callback) => {
   await notifyUser(process.env.ADMIN_ID, 'The Planet Harvest started ...');
   const data = JSON.parse(event.body);
-  if (typeof data.token !== 'string' || data.token !== process.env.VERIFICATION_TOKEN ) {
+
+  if (typeof data.token !== 'string' || data.token !== process.env.VERIFICATION_TOKEN) {
     callback(null, {
       statusCode: 403,
       headers: { 'Content-Type': 'text/plain' },
@@ -196,6 +200,7 @@ module.exports.theplanetcmd = async (event, context, callback) => {
   }
   const timestamp = new Date().getTime();
   const allItems = await getAllItems();
+
   console.log(`Users to update: ${allItems.length}`);
   for (let i = 0; i < allItems.length; i += 1) {
     const params = {
@@ -219,6 +224,7 @@ module.exports.theplanetcmd = async (event, context, callback) => {
         if (error) {
           console.log('THEPLANETCMD', error);
           let errorBody = error.code;
+
           if (error.code === 'ConditionalCheckFailedException') {
             errorBody = `${allItems[i].userName} has reached 0HP limit. Request declined.`;
           }
@@ -231,15 +237,16 @@ module.exports.theplanetcmd = async (event, context, callback) => {
         } else {
           const attachments = [
               {
-                  "text": `${allItems[i].userName} has died.`,
-                  "fallback": "FitQuest death",
-                  "callback_id": 1,
-                  "color": "danger",
-                  "attachment_type": "default"
+                  'text': `${allItems[i].userName} has died.`,
+                  'fallback': 'FitQuest death',
+                  'callback_id': 1,
+                  'color': 'danger',
+                  'attachment_type': 'default'
               }
           ];
+
           await notifyUser(process.env.GAME_MASTER_ID, null, JSON.stringify(attachments));
-          await sendAsThePlanet(allItems[i].id, `The Planet deals -2HP damage. You are now dead.`);
+          await sendAsThePlanet(allItems[i].id, 'The Planet deals -2HP damage. You are now dead.');
           await notifyUser(process.env.ADMIN_ID, `${allItems[i].userName} has died.`);
         }
       });
@@ -250,7 +257,7 @@ module.exports.theplanetcmd = async (event, context, callback) => {
 
   const response = {
     statusCode: 201,
-    body: "Done!",
+    body: 'Done!',
   };
 
   callback(null, response);
