@@ -4,6 +4,24 @@ const AWS = require('aws-sdk');
 const Slack = require('slack-node');
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
+const getChannelMembers = (id) => {
+  const slack = new Slack(process.env.SLACK_API_TOKEN);
+
+  return new Promise((resolve, reject) => {
+    slack.api('channels.info', {
+      channel: id
+    }, (err, response) => {
+      if (err) {
+          reject(err);
+      } else if (response.ok === false) {
+          reject(response.error);
+      } else if (response.ok === true) {
+          resolve(response.channel.members);
+      }
+    });
+  });
+}
+
 const notifyUser = (id, messageLink, attachments) => {
   const slack = new Slack(process.env.SLACK_API_TOKEN);
 
@@ -200,58 +218,58 @@ module.exports.theplanetcmd = async (event, context, callback) => {
   }
   const timestamp = new Date().getTime();
   const allItems = await getAllItems();
-
-  console.log(`Users to update: ${allItems.length}`);
+  const gameChannelMembers = await getChannelMembers(process.env.MAIN_SLACK_CHANNEL);
   for (let i = 0; i < allItems.length; i += 1) {
-    const params = {
-      TableName: process.env.HP_TABLE_NAME,
-      Key: {
-        id: allItems[i].id,
-      },
-      ExpressionAttributeValues: {
-        ':value': 2,
-        ':updatedAt': timestamp,
-        ':minhp': 0
-      },
-      UpdateExpression: 'SET hp = hp - :value, updatedAt = :updatedAt',
-      ConditionExpression: 'hp >= :minhp',
-      ReturnValues: 'ALL_NEW',
-    };
+    if (gameChannelMembers.includes(allItems[i].id)) {
+      const params = {
+        TableName: process.env.HP_TABLE_NAME,
+        Key: {
+          id: allItems[i].id,
+        },
+        ExpressionAttributeValues: {
+          ':value': 2,
+          ':updatedAt': timestamp,
+          ':minhp': 0
+        },
+        UpdateExpression: 'SET hp = hp - :value, updatedAt = :updatedAt',
+        ConditionExpression: 'hp >= :minhp',
+        ReturnValues: 'ALL_NEW',
+      };
 
-    console.log(`${i}: ${allItems[i].hp}HP -2HP from ${allItems[i].userName}`);
-    if (allItems[i].hp > 0) {
-      dynamoDb.update(params, async (error, result) => {
-        if (error) {
-          console.log('THEPLANETCMD', error);
-          let errorBody = error.code;
-
-          if (error.code === 'ConditionalCheckFailedException') {
-            errorBody = `${allItems[i].userName} has reached 0HP limit. Request declined.`;
+      console.log(`${i}: ${allItems[i].hp}HP -2HP from ${allItems[i].userName}`);
+      if (allItems[i].hp > 0) {
+        console.log(`${allItems[i].userName} is still in game.`);
+        dynamoDb.update(params, async (error, result) => {
+          if (error) {
+            console.log('THEPLANETCMD', error);
+            let errorBody = error.code;
+      
+            if (error.code === 'ConditionalCheckFailedException') {
+              errorBody = `${allItems[i].userName} has reached 0HP limit. Request declined.`;
+            }
+            await notifyUser(process.env.ADMIN_ID, errorBody);
+            return;
           }
-          await notifyUser(process.env.ADMIN_ID, errorBody);
-          return;
-        }
-
-        if (result.Attributes.hp > 0) {
-          await sendAsThePlanet(allItems[i].id, `The Planet deals -2HP damage. You now have ${result.Attributes.hp}HP`);
-        } else {
-          const attachments = [
-              {
-                  'text': `${allItems[i].userName} has died.`,
-                  'fallback': 'FitQuest death',
-                  'callback_id': 1,
-                  'color': 'danger',
-                  'attachment_type': 'default'
-              }
-          ];
-
-          await notifyUser(process.env.GAME_MASTER_ID, null, JSON.stringify(attachments));
-          await sendAsThePlanet(allItems[i].id, 'The Planet deals -2HP damage. You are now dead.');
-          await notifyUser(process.env.ADMIN_ID, `${allItems[i].userName} has died.`);
-        }
-      });
-    } else {
-      console.log(`No update. ${allItems[i].userName} has ${allItems[i].hp}HP`);
+      
+          if (result.Attributes.hp > 0) {
+            await sendAsThePlanet(allItems[i].id, `The Planet deals -2HP damage. You now have ${result.Attributes.hp}HP`);
+          } else {
+            const attachments = [
+                {
+                    'text': `${allItems[i].userName} has died.`,
+                    'fallback': 'FitQuest death',
+                    'callback_id': 1,
+                    'color': 'danger',
+                    'attachment_type': 'default'
+                }
+            ];
+      
+            await notifyUser(process.env.GAME_MASTER_ID, null, JSON.stringify(attachments));
+            await sendAsThePlanet(allItems[i].id, 'The Planet deals -2HP damage. You are now dead.');
+            await notifyUser(process.env.ADMIN_ID, `${allItems[i].userName} has died.`);
+          }
+        });
+      }
     }
   }
 
@@ -261,5 +279,5 @@ module.exports.theplanetcmd = async (event, context, callback) => {
   };
 
   callback(null, response);
-  notifyUser(process.env.ADMIN_ID, `Done updating ${allItems.length} users.`);
+  notifyUser(process.env.ADMIN_ID, 'Done!');
 }
