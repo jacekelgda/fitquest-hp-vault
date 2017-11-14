@@ -173,7 +173,7 @@ module.exports.heal = async (event, context, callback) => {
     callback(null, response);
   });
 
-  await notifyUser(`<@${process.env.ADMIN_ID}: The Device healing ${userInfo.user.name}`);
+  await notifyUser(`<@${process.env.ADMIN_ID}>: The Device healing ${userInfo.user.name}`);
 }
 
 const fetchChannelUsers = () => {
